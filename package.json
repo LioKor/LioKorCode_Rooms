@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "ws": "^8.5.0"
+  }
+}
