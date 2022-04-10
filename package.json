@@ -1,6 +1,7 @@
 {
+  "type": "module",
   "scripts": {
-    "dev": "node index.js"
+    "dev": "node src/index.js"
   },
   "dependencies": {
     "ws": "^8.5.0"
