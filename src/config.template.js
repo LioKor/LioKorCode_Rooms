@@ -1,4 +1,16 @@
 export default {
-    PORT: 9090,
-    JWT_TOKEN: 'SUPER_SECRET_TOKEN_HERE!!!'
+    port: 9090,
+    jwtToken: 'SUPER_SECRET_TOKEN_HERE!!!',
+    iceServers: [
+        {
+            urls: "stun:url",
+            username: '',
+            credential: ''
+        },
+        {
+            urls: 'turn:url',
+            username: 'wowl',
+            credential: 'qwerty123'
+        }
+    ]
 }

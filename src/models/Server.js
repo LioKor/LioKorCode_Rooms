@@ -2,6 +2,7 @@ import {createServer} from "http"
 import {WebSocketServer} from "ws"
 import {randomString} from "../utils.js"
 
+import config from './../config.js'
 import Room from './Room.js'
 import User from './User.js'
 
@@ -92,10 +93,20 @@ export default class Server {
             ws.on('message', (message) => {
                 const data = JSON.parse(message);
 
+                if (data.to) {
+                    const user = this.users[data.to]
+                    if (user) {
+                        data.from = user.id
+                        user.send(data)
+                    }
+                    return
+                }
+
                 if (data.command === 'setInfo') {
                     user.username = data.username;
                     this.users[user.id] = user;
                     console.log(`${user.username} connected!`);
+                    user.setInfo(config.iceServers)
                 } else if (data.command === 'createRoom') {
                     this.createRoom(user, data.name, data.maxUsers);
                 } else if (data.command === 'getRooms') {

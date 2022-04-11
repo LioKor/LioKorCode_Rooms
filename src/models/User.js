@@ -16,10 +16,33 @@ export default class User {
         })
     }
 
+    setInfo(iceServers) {
+        this.send({
+            command: 'setInfo',
+            iceServers: iceServers
+        })
+    }
+
     kick(forceful = true) {
         this.send({
             command: 'leaveRoom',
             kick: forceful
+        })
+    }
+
+    deleteRoomUser(user) {
+        this.send({
+            command: 'deleteRoomUser',
+            id: user.id,
+            username: user.username
+        })
+    }
+
+    addRoomUser(user) {
+        this.send({
+            command: 'addRoomUser',
+            id: user.id,
+            username: user.username
         })
     }
 

@@ -28,12 +28,14 @@ export default class Room {
         }
     }
 
-    kick(user) {
-        user.kick(false);
-        this.deleteUser(user);
+    kick(kickedUser) {
+        kickedUser.kick(false);
+        this.deleteUser(kickedUser);
 
         for (const user of this.users) {
-            user.setRoom(this);
+            if (user !== kickedUser) {
+                user.deleteRoomUser(kickedUser);
+            }
         }
     }
 
@@ -44,11 +46,14 @@ export default class Room {
         this.users = [];
     }
 
-    addUser(user) {
-        this.users.push(user)
+    addUser(newUser) {
+        this.users.push(newUser)
+        newUser.setRoom(this)
 
         for (const user of this.users) {
-            user.setRoom(this);
+            if (user !== newUser) {
+                user.addRoomUser(newUser)
+            }
         }
     }
 }
