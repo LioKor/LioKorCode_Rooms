@@ -1,4 +1,5 @@
 import {createServer} from "http"
+import { performance } from 'perf_hooks'
 import {WebSocketServer} from "ws"
 import {randomString} from "../utils.js"
 
@@ -8,7 +9,7 @@ import User from './User.js'
 
 
 export default class Server {
-    constructor(port) {
+    constructor(port, pingIntervalTime = 10000) {
         const server = createServer()
         this.wsServer = new WebSocketServer({ server });
         this.rooms = {}
@@ -17,6 +18,18 @@ export default class Server {
         this.users = {}
 
         this.init()
+
+        const pingInterval = setInterval(function() {
+            for (const uid in this.users) {
+                const user = this.users[uid]
+                const delta = performance.now() - user.pongAnswerTime
+                if (delta >= pingIntervalTime * 3) {
+                    this.userDisconnect(user)
+                } else {
+                    user.send({command: 'ping'})
+                }
+            }
+        }.bind(this), pingIntervalTime)
 
         server.listen(port);
     }
@@ -104,6 +117,8 @@ export default class Server {
 
         delete this.users[user.id]
 
+        user.ws.close()
+
         console.log(`${user.username} disconnected!`);
     }
 
@@ -139,6 +154,8 @@ export default class Server {
                     this.setRooms(currentUser);
                 } else if (data.command === 'leaveRoom') {
                     this.userLeaveRoom(currentUser)
+                } else if (data.command === 'pong') {
+                    currentUser.pongAnswerTime = performance.now()
                 } else if (data.command === 'joinRoom') {
                     const room = this.rooms[data.id]
                     if (!room) {

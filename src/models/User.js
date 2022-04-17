@@ -1,9 +1,13 @@
+import {performance} from "perf_hooks";
+
 export default class User {
     constructor(id, ws) {
         this.id = id;
         this.ws = ws;
 
         this.username = ''
+
+        this.pongAnswerTime = performance.now()
     }
 
     send(data) {
