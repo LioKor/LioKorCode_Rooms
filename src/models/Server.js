@@ -81,6 +81,32 @@ export default class Server {
         this.setRooms()
     }
 
+    userLeaveRoom(user) {
+        const room = this.getJoinedRoom(user);
+        if (!room) {
+            return
+        }
+
+        if (room.owner === user) {
+            this.deleteRoom(room);
+        } else {
+            room.kick(user);
+        }
+    }
+
+    userDisconnect(user) {
+        // not authenticated
+        if (!user.username) {
+            return;
+        }
+
+        this.userLeaveRoom(user)
+
+        delete this.users[user.id]
+
+        console.log(`${user.username} disconnected!`);
+    }
+
     init() {
         this.wsServer.on('listening', () => {
             const addr = this.wsServer.address();
@@ -106,23 +132,13 @@ export default class Server {
                     currentUser.username = data.username;
                     this.users[currentUser.id] = currentUser;
                     console.log(`${currentUser.username} connected!`);
-                    currentUser.setInfo(config.iceServers)
+                    currentUser.setInfo(currentUser.id, config.iceServers)
                 } else if (data.command === 'createRoom') {
                     this.createRoom(currentUser, data.name, data.maxUsers);
                 } else if (data.command === 'getRooms') {
                     this.setRooms(currentUser);
                 } else if (data.command === 'leaveRoom') {
-                    const room = this.getJoinedRoom(currentUser);
-                    if (!room) {
-                        currentUser.error('This room does not exist')
-                        return
-                    }
-
-                    if (room.owner === currentUser) {
-                        this.deleteRoom(room);
-                    } else {
-                        room.kick(currentUser);
-                    }
+                    this.userLeaveRoom(currentUser)
                 } else if (data.command === 'joinRoom') {
                     const room = this.rooms[data.id]
                     if (!room) {
@@ -142,18 +158,7 @@ export default class Server {
             });
 
             ws.on('close', () => {
-                if (!currentUser.username) {
-                    return;
-                }
-
-                const room = this.getJoinedRoom(currentUser);
-                if (room) {
-                    if (room.owner === currentUser) {
-                        this.deleteRoom(room);
-                    }
-                }
-                delete this.users[currentUser.id]
-                console.log(`${currentUser.username} disconnected!`);
+                this.userDisconnect(currentUser)
             });
         });
     }

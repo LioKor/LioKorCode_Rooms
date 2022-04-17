@@ -16,9 +16,10 @@ export default class User {
         })
     }
 
-    setInfo(iceServers) {
+    setInfo(id, iceServers) {
         this.send({
             command: 'setInfo',
+            id: id,
             iceServers: iceServers
         })
     }
