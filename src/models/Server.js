@@ -88,7 +88,7 @@ export default class Server {
         });
 
         this.wsServer.on('connection', (ws) => {
-            const user = new User(this.uid++, ws);
+            const currentUser = new User(this.uid++, ws);
 
             ws.on('message', (message) => {
                 const data = JSON.parse(message);
@@ -96,64 +96,64 @@ export default class Server {
                 if (data.to) {
                     const user = this.users[data.to]
                     if (user) {
-                        data.from = user.id
+                        data.from = currentUser.id
                         user.send(data)
                     }
                     return
                 }
 
                 if (data.command === 'setInfo') {
-                    user.username = data.username;
-                    this.users[user.id] = user;
-                    console.log(`${user.username} connected!`);
-                    user.setInfo(config.iceServers)
+                    currentUser.username = data.username;
+                    this.users[currentUser.id] = currentUser;
+                    console.log(`${currentUser.username} connected!`);
+                    currentUser.setInfo(config.iceServers)
                 } else if (data.command === 'createRoom') {
-                    this.createRoom(user, data.name, data.maxUsers);
+                    this.createRoom(currentUser, data.name, data.maxUsers);
                 } else if (data.command === 'getRooms') {
-                    this.setRooms(user);
+                    this.setRooms(currentUser);
                 } else if (data.command === 'leaveRoom') {
-                    const room = this.getJoinedRoom(user);
+                    const room = this.getJoinedRoom(currentUser);
                     if (!room) {
-                        user.error('This room does not exist')
+                        currentUser.error('This room does not exist')
                         return
                     }
 
-                    if (room.owner === user) {
+                    if (room.owner === currentUser) {
                         this.deleteRoom(room);
                     } else {
-                        room.kick(user);
+                        room.kick(currentUser);
                     }
                 } else if (data.command === 'joinRoom') {
                     const room = this.rooms[data.id]
                     if (!room) {
-                        user.error('Room does not exist!')
+                        currentUser.error('Room does not exist!')
                     }
 
-                    room.addUser(user);
+                    room.addUser(currentUser);
                 } else if (data.command === 'sendMessage') {
-                    const room = this.getJoinedRoom(user);
+                    const room = this.getJoinedRoom(currentUser);
                     if (!room) {
-                        user.error('Join the room first!')
+                        currentUser.error('Join the room first!')
                         return;
                     }
 
-                    room.sendMessage(user, data.content)
+                    room.sendMessage(currentUser, data.content)
                 }
             });
 
             ws.on('close', () => {
-                if (!user.username) {
+                if (!currentUser.username) {
                     return;
                 }
 
-                const room = this.getJoinedRoom(user);
+                const room = this.getJoinedRoom(currentUser);
                 if (room) {
-                    if (room.owner === user) {
+                    if (room.owner === currentUser) {
                         this.deleteRoom(room);
                     }
                 }
-                delete this.users[user.id]
-                console.log(`${user.username} disconnected!`);
+                delete this.users[currentUser.id]
+                console.log(`${currentUser.username} disconnected!`);
             });
         });
     }
