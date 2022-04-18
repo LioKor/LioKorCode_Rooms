@@ -1,11 +1,11 @@
 import {performance} from "perf_hooks";
 
 export default class User {
-    constructor(id, ws) {
+    constructor(id, ws, username = '') {
         this.id = id;
         this.ws = ws;
 
-        this.username = ''
+        this.username = username
 
         this.pongAnswerTime = performance.now()
     }
@@ -16,7 +16,8 @@ export default class User {
 
     error(message) {
         this.send({
-            error: message
+            command: 'error',
+            message: message
         })
     }
 
@@ -63,11 +64,15 @@ export default class User {
         const data = {
             command: 'setRoom',
 
-            id: room.id,
-            name: room.name,
-            maxUsers: room.maxUsers,
-            users: users
+            room: room.toObject()
         }
         this.send(data)
+    }
+
+    toObject() {
+        return {
+            'id': this.id,
+            'username': this.username
+        }
     }
 }

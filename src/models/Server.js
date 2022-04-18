@@ -12,7 +12,15 @@ export default class Server {
     constructor(port, pingIntervalTime = 10000) {
         const server = createServer()
         this.wsServer = new WebSocketServer({ server });
-        this.rooms = {}
+        this.rooms = {
+            /*'DEMO_ROOM': new Room(
+                'DEMO_ROOM',
+                new User(-1, null, 'WOLF'),
+                'DEMO_ROOM',
+                15,
+                'wolfqwer'
+            )*/
+        }
 
         this.uid = 0;
         this.users = {}
@@ -48,12 +56,7 @@ export default class Server {
         const roomsArr = [];
         for (const roomId in this.rooms) {
             const room = this.rooms[roomId];
-            roomsArr.push({
-                id: room.id,
-                name: room.name,
-                usersMax: room.maxUsers,
-                usersAmount: room.users.length
-            });
+            roomsArr.push(room.toObject());
         }
 
         const data = {
@@ -71,7 +74,7 @@ export default class Server {
         }
     }
 
-    createRoom(owner, name, maxUsers) {
+    createRoom(owner, name, maxUsers, password) {
         const joinedRoom = this.getJoinedRoom(owner);
         if (joinedRoom) {
             if (joinedRoom.owner === owner) {
@@ -81,7 +84,7 @@ export default class Server {
         }
 
         const id = randomString();
-        const room = new Room(id, name, maxUsers, owner);
+        const room = new Room(id, owner, name, maxUsers, password);
         this.rooms[id] = room
         this.setRooms()
         owner.setRoom(room)
@@ -160,6 +163,22 @@ export default class Server {
                     const room = this.rooms[data.id]
                     if (!room) {
                         currentUser.error('Room does not exist!')
+                        return
+                    }
+                    if (room.users.length >= room.maxUsers) {
+                        currentUser.error('Room is full!')
+                        return
+                    }
+                    if (room.password !== data.password) {
+                        currentUser.error('Incorrect password!')
+                        return
+                    }
+                    for (const user of room.users) {
+                        console.log(user.username)
+                        if (user.username === currentUser.username) {
+                            currentUser.error('You are already in this room (maybe from another browser)!')
+                            return
+                        }
                     }
 
                     room.addUser(currentUser);

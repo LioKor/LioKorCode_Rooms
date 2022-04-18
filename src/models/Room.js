@@ -1,11 +1,12 @@
 export default class Room {
-    constructor(id, name, maxUsers=12, owner) {
-        this.id = id;
-        this.name = name;
-        this.maxUsers = 10
-        this.owner = owner;
+    constructor(id, owner, name, maxUsers = 12, password = '') {
+        this.id = id
+        this.owner = owner
+        this.name = name
+        this.maxUsers = maxUsers
+        this.password = password
 
-        this.users = [owner];
+        this.users = [owner]
     }
 
     sendMessage(fromUser, content) {
@@ -54,6 +55,26 @@ export default class Room {
             if (user !== newUser) {
                 user.addRoomUser(newUser)
             }
+        }
+    }
+
+    toObject() {
+        const users = []
+        for (const user of this.users) {
+            users.push(user.toObject())
+        }
+
+        return {
+            id: this.id,
+            name: this.name,
+            owner: {
+                id: this.owner.id,
+                username: this.owner.username
+            },
+            usersMax: this.maxUsers,
+            hasPassword: this.password.length > 0,
+
+            users: users
         }
     }
 }
