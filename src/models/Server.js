@@ -152,7 +152,7 @@ export default class Server {
                     console.log(`${currentUser.username} connected!`);
                     currentUser.setInfo(currentUser.id, config.iceServers)
                 } else if (data.command === 'createRoom') {
-                    this.createRoom(currentUser, data.name, data.maxUsers);
+                    this.createRoom(currentUser, data.name, data.maxUsers, data.password);
                 } else if (data.command === 'getRooms') {
                     this.setRooms(currentUser);
                 } else if (data.command === 'leaveRoom') {
