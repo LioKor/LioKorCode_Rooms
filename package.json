@@ -4,6 +4,7 @@
     "dev": "node src/index.js"
   },
   "dependencies": {
+    "jsonwebtoken": "^8.5.1",
     "ws": "^8.5.0"
   }
 }

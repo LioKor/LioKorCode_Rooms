@@ -2,6 +2,7 @@ import {createServer} from "http"
 import { performance } from 'perf_hooks'
 import {WebSocketServer} from "ws"
 import {randomString} from "../utils.js"
+import jwt from 'jsonwebtoken';
 
 import config from './../config.js'
 import Room from './Room.js'
@@ -40,6 +41,18 @@ export default class Server {
         }.bind(this), pingIntervalTime)
 
         server.listen(port);
+    }
+
+    async verify_token(token) {
+        return new Promise((resolve, reject) => {
+            jwt.verify(token, config.jwtKey, {},(err, decoded) => {
+                if (err === null) {
+                    resolve(decoded)
+                } else {
+                    resolve(null)
+                }
+            })
+        });
     }
 
     getJoinedRoom(user) {
@@ -111,18 +124,14 @@ export default class Server {
     }
 
     userDisconnect(user) {
-        // not authenticated
-        if (!user.username) {
-            return;
+        // authenticated
+        if (user.username) {
+            this.userLeaveRoom(user)
+            delete this.users[user.id]
+            console.log(`${user.username} disconnected!`);
         }
 
-        this.userLeaveRoom(user)
-
-        delete this.users[user.id]
-
         user.ws.close()
-
-        console.log(`${user.username} disconnected!`);
     }
 
     init() {
@@ -134,7 +143,7 @@ export default class Server {
         this.wsServer.on('connection', (ws) => {
             const currentUser = new User(this.uid++, ws);
 
-            ws.on('message', (message) => {
+            ws.on('message', async (message) => {
                 const data = JSON.parse(message);
 
                 if (data.to) {
@@ -147,7 +156,17 @@ export default class Server {
                 }
 
                 if (data.command === 'setInfo') {
-                    currentUser.username = data.username;
+                    const userData = await this.verify_token(data.jwtToken)
+                    if (userData === null) {
+                        this.userDisconnect(currentUser)
+                        return
+                    }
+
+                    currentUser.uid = userData.id;
+                    currentUser.username = userData.username;
+                    currentUser.fullname = userData.fullname;
+                    currentUser.avatarUrl = userData.avatarUrl;
+
                     this.users[currentUser.id] = currentUser;
                     console.log(`${currentUser.username} connected!`);
                     currentUser.setInfo(currentUser.id, config.iceServers)

@@ -1,6 +1,6 @@
 export default {
     port: 9090,
-    jwtToken: 'SUPER_SECRET_TOKEN_HERE!!!',
+    jwtKey: 'SUPER_SECRET_KEY_HERE!!!',
     iceServers: [
         {
             urls: "stun:url",

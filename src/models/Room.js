@@ -69,7 +69,8 @@ export default class Room {
             name: this.name,
             owner: {
                 id: this.owner.id,
-                username: this.owner.username
+                username: this.owner.username,
+                fullname: this.owner.fullname
             },
             usersMax: this.maxUsers,
             hasPassword: this.password.length > 0,
