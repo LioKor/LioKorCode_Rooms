@@ -75,7 +75,8 @@ export default class User {
         return {
             id: this.id,
             username: this.username,
-            fullname: this.fullname
+            fullname: this.fullname,
+            avatarUrl: this.avatarUrl
         }
     }
 }
